@@ -4,27 +4,36 @@ def measure_query_4(col, provider_name):
         [
             {
                 "$match": {
-                    "balance.curr_balance": {"$gt": 0},
-                    "charges.provider_name": {"$eq": "Citigroup"},
+                    "balance.curr_balance": {"$gt": 100},
                 }
             },
             {"$unwind": "$charges"},
+            {
+                "$addFields": {"phone_number": {"$toString": "$phone_number"}},
+            },
+            {
+                "$addFields": {
+                    "provider_phone_number": {
+                        "$toString": "$charges.provider_phone_number"
+                    }
+                }
+            },
             {
                 "$addFields": {
                     "member_phone_last_2digits": {
                         "$substr": [
                             "$phone_number",
-                            {"$subtract": [{"$strLenCP": "$phone_number"}, 2]},
+                            {"$subtract": [{"$strLenCP": "$phone_number"}, 1]},
                             -1,
                         ]
                     },
                     "provider_phone_last_2digits": {
                         "$substr": [
-                            "$charges.provider_phone_number",
+                            "$provider_phone_number",
                             {
                                 "$subtract": [
-                                    {"$strLenCP": "$charges.provider_phone_number"},
-                                    2,
+                                    {"$strLenCP": "provider_phone_number"},
+                                    1,
                                 ]
                             },
                             -1,
@@ -44,9 +53,9 @@ def measure_query_4(col, provider_name):
             },
             {
                 "$project": {
-                    "lastname": True,
-                    "firstname": True,
-                    "phone_number": True,
+                    "lastname": 1,
+                    "firstname": 1,
+                    "phone_number": 1,
                     "provider_phone_number": "$charges.provider_phone_number",
                 }
             },

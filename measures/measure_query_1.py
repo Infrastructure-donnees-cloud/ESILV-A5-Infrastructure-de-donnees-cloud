@@ -1,6 +1,3 @@
-# print(col.find().explain()["executionStats"])
-
-
 def measure_query_1(col, category_desc, year):
     results1 = col.aggregate(
         [
