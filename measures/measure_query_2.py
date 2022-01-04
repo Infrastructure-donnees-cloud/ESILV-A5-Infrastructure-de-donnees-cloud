@@ -21,20 +21,15 @@ def measure_query_2(db, corp_name, provider_city):
             {"aggregate": "members", "pipeline": query2, "cursor": {}},
             verbosity="executionStats",
         )
-        execution_time = (
-            results2_time["shards"]["RS_credit"]["stages"][0]["$cursor"][
-                "executionStats"
-            ]["executionTimeMillis"]
-            + results2_time["shards"]["RS_credit"]["stages"][1][
-                "executionTimeMillisEstimate"
-            ]
-            + results2_time["shards"]["RS_credit"]["stages"][2][
-                "executionTimeMillisEstimate"
-            ]
-            + results2_time["shards"]["RS_credit"]["stages"][3][
-                "executionTimeMillisEstimate"
-            ]
-        )
+        execution_time = 0
+        for shards in results2_time["shards"]:
+            infos = results2_time["shards"][shards]
+            execution_time += (
+                infos["stages"][0]["$cursor"]["executionStats"]["executionTimeMillis"]
+                + infos["stages"][1]["executionTimeMillisEstimate"]
+                + infos["stages"][2]["executionTimeMillisEstimate"]
+                + infos["stages"][3]["executionTimeMillisEstimate"]
+            )
         times.append(execution_time)
     times.remove(max(times))
     times.remove(min(times))

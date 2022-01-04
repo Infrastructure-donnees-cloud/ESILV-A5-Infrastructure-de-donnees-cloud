@@ -32,23 +32,15 @@ def measure_query_6(db):
             {"aggregate": "members", "pipeline": query, "cursor": {}},
             verbosity="executionStats",
         )
-        execution_time = (
-            results_time["shards"]["RS_credit"]["stages"][0]["$cursor"][
-                "executionStats"
-            ]["executionTimeMillis"]
-            + results_time["shards"]["RS_credit"]["stages"][1][
-                "executionTimeMillisEstimate"
-            ]
-            + results_time["shards"]["RS_credit"]["stages"][2][
-                "executionTimeMillisEstimate"
-            ]
-            + results_time["shards"]["RS_credit"]["stages"][3][
-                "executionTimeMillisEstimate"
-            ]
-            + results_time["shards"]["RS_credit"]["stages"][4][
-                "executionTimeMillisEstimate"
-            ]
-        )
+        execution_time = 0
+        for shards in results_time["shards"]:
+            infos = results_time["shards"][shards]
+            execution_time += (
+                infos["stages"][0]["$cursor"]["executionStats"]["executionTimeMillis"]
+                + infos["stages"][1]["executionTimeMillisEstimate"]
+                + infos["stages"][2]["executionTimeMillisEstimate"]
+                + infos["stages"][3]["executionTimeMillisEstimate"]
+            )
         times.append(execution_time)
     times.remove(max(times))
     times.remove(min(times))
