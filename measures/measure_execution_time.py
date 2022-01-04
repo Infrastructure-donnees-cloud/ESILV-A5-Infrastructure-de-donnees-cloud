@@ -27,7 +27,7 @@ col_payments = db.payments
 # print("Time query 5 : ", measure_query_5(db))
 # print("Time query 6 : ", measure_query_6(db))
 # print("Time query 7 : ", measure_query_7(db, col_members, col_payments))
-print("Time query 8 : ", measure_query_8(col_members, col_payments))
+print("Time query 8 : ", measure_query_8(db, col_members, col_payments))
 # measure_query_7(db, col_members, col_payments)
 # measure_query_8(col_members, col_payments)
 
