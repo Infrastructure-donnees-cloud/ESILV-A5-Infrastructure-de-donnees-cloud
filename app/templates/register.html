@@ -32,6 +32,14 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
+        <p>
+            {{ form.access_type.label }}<br>
+            {{ form.access_type() }}<br>
+            {% for error in form.access_type.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
         <p>{{ form.submit() }}</p>
     </form>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }}!</h1>
+
+    <h3>You are an admin, please consult the below information !</h3>
+
+    <h3>Collections : </h3>
+
+    {% for col in collections %}
+
+        <div>
+            <p><b>{{ col}}</b></p>
+        </div>
+
+    {% endfor %}
+
+
+    <h3>Number of objects : </h3>
+
+    <p>{{number_objects}}</p>
+
+
+{% endblock %}
+

@@ -14,6 +14,20 @@ from pygal.style import Style
 
 from werkzeug.urls import url_parse
 
+
+
+import mongo_queries
+
+
+import pandas as pd
+
+import plotly
+import plotly.express as px
+import json
+
+
+
+
 @app.route('/')
 
 
@@ -21,25 +35,49 @@ from werkzeug.urls import url_parse
 @login_required
 def index():
 
-
     queries = [
         {
             "number" : 1,
-            "body": "All members who took a loan in 2021, according to category Trip."
+            "body": "All members who took a loan in 2021, according to category Trip.",
+            "access_type":0
         },
         {
             "number" : 2,
-            "body": "List of payments made by employees of company XX and whose credit provider resides in city YY."
+            "body": "List of payments made by employees of company XX and whose credit provider resides in city YY.",
+            "access_type":0
         },
         {
             "number" : 3,
-            "body": "List of members who have contracted a category XX loan and who live in a street with the word YY in it."
+            "body": "List of members who have contracted a category XX loan and who live in a street with the word YY in it.",
+            "access_type":0
         },
         {
             "number" : 4,
-            "body": "Member with a capital greater than XX $, having taken a loan from a provider YY, and whose telephone number and the one of the provider end with the same numbers."
+            "body": "Member with a capital greater than XX $, having taken a loan from a provider YY, and whose telephone number and the one of the provider end with the same numbers.",
+            "access_type":0
+        },
+        {
+            "number" : 5,
+            "body": "Corporation whose employees are indebted of more than 10000$ by region and whose employees must repay their loans as quickly as possible.",
+            "access_type":1
+        },
+        {
+            "number" : 6,
+            "body": "By category, name of the provider that provides the most liquidity.",
+            "access_type":1
+        },
+        {
+            "number" : 7,
+            "body": "Average time required for a member to repay a loan (already paid) by range of credit contracted.",
+            "access_type":1
+        },
+        {
+            "number" : 8,
+            "body": "Average interest rate of each provider, by category.",
+            "access_type":1
         },
     ]
+
     return render_template('index.html', title='Home Page', queries=queries)
 
 
@@ -49,7 +87,7 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data, email=form.email.data, access_type=form.access_type.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -82,28 +120,102 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/access')   
+def access():
 
-@app.route('/bar_route')   
-@login_required
-def bar_route():
-    
-    try:
+    print(current_user.username)
+    print(current_user.email)
+    print(current_user.access_type)
 
-        bar_chart = pygal.Bar()
-        bar_chart.title = 'Browser usage evolution (in %)'
-        bar_chart.x_labels = map(str, range(2002, 2013))
-        bar_chart.add('Firefox', [None, None, 0, 16.6,   25,   31, 36.4, 45.5, 46.3, 42.8, 37.1])
-        bar_chart.add('Chrome',  [None, None, None, None, None, None,    0,  3.9, 10.8, 23.8, 35.3])
-        bar_chart.add('IE',      [85.8, 84.6, 84.7, 74.5,   66, 58.6, 54.7, 44.8, 36.2, 26.6, 20.1])
-        bar_chart.add('Others',  [14.2, 15.4, 15.3,  8.9,    9, 10.4,  8.9,  5.8,  6.7,  6.8,  7.5])
-        barchart_data=bar_chart.render_data_uri()
-        return render_template('barchart.html',barchart_data=barchart_data)
-
-    except Exception:
-        return "error"
+    if current_user.access_type>1:
+        return "Access ok"
+    else:
+        return "Access denied"
 
 
-@app.route('/q1')   
+@app.route('/q1', methods =["GET", "POST"])
 def q1():
+
+    if request.method == "POST":
+       # getting input with name = fname in HTML form
+       category = request.form.get("category")
+       year = request.form.get("year")
+
+       res = mongo_queries.query_1(category, year)
+       
+       return render_template('q1.html', title='Query 1', res=res)
     
+    return render_template("q1.html")
+
+
+@app.route('/q2', methods =["GET", "POST"])
+def q2():
+
+    if request.method == "POST":
+       # getting input with name = fname in HTML form
+       corp_name = request.form.get("corp_name")
+
+       res = mongo_queries.query_2(corp_name)
+       
+       return render_template('q2.html', title='Query 2', res=res)
     
+    return render_template("q2.html")
+
+
+@app.route('/q3')   
+def q3():
+
+    res = mongo_queries.query_3()
+    return render_template('q3.html', title='Query 3', res=res)
+
+
+@app.route('/q6')   
+def q6():
+
+    if current_user.access_type>=1:
+
+        res = mongo_queries.query_6()
+
+        #Collect all the informations to plot
+
+        data = pd.json_normalize(res)
+
+        fig = px.bar(data, x='_id', y='maxi.amount', color='maxi.provider_name', barmode='group', title = 'By category, name of the provider that provides the most liquidity.',
+        
+        labels={
+                        "_id": "Credit category",
+                        "maxi.provider_name": "Provider name",
+                        "maxi.amount": "Amount provided"
+                    }
+        
+        )
+
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+        return render_template('q6.html', graphJSON = graphJSON, res=res)
+
+    else:
+        return render_template('denied.html')
+
+
+@app.route('/q7')   
+def q7():
+
+    res = mongo_queries.query_7()
+    return render_template('q7.html', title='Query 7', res=res)
+
+
+
+@app.route('/admin')   
+def admin():
+
+    if current_user.access_type>=1:
+
+        collections = mongo_queries.get_list_collections()
+        number_objects = mongo_queries.get_number_objects()
+
+        return render_template('admin.html', collections=collections, number_objects=number_objects)
+
+    else:
+        return render_template('denied.html')

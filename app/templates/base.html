@@ -1,15 +1,10 @@
 <html>
     <head>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-        {% if title %}
-        <title>{{ title }} - microblog</title>
-        {% else %}
-        <title>microblog</title>
-        {% endif %}
     </head>
     <body>
         <div>
-            Microblog:
+            Cloud App :
             <a href="{{ url_for('index') }}">Home</a>
             {% if current_user.is_anonymous %}
             <a href="{{ url_for('login') }}">Login</a>

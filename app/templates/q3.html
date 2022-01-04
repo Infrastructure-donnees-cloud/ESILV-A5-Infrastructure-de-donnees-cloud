@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }} !</h1>
+
+    <h3>This is the result to the query 3 : </h3>
+
+    {% for r in res%}
+    <div><p><b>Lastname : {{ r.lastname}}</b> | firstname : {{r.firstname}} | provider : {{r.charges.provider_name}} </p>
+    </div>
+    {% endfor %}
+{% endblock %}

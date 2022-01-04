@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    access_type = db.Column(db.Integer)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -27,7 +28,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def allowed(self, access_level):
-        return self.access >= access_level
+        return self.access_type >= access_level
 
 
 @login.user_loader

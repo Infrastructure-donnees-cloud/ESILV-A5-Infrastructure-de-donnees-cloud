@@ -7,8 +7,14 @@ body {
   font-family: "Open sans", Helvetica, Arial, sans-serif;
   color: #666666;
   padding: 0;
-  text-align: center;
+  text-align: left;
 }
+
+form { 
+  margin: 0 auto; 
+  width:250px;
+  }
+
 .topspace {
   margin-top: 40px;
 }
@@ -156,9 +162,14 @@ blockquote {
   margin: 0 0 30px;
   border-left: 5px solid #eee;
 }
-h1,
+h1 {
+  text-align: center;
+}
+
 h2,
-h3,
+h3 {
+  text-align: center;
+}
 h4,
 h5,
 h6,
