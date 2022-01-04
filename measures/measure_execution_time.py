@@ -19,14 +19,14 @@ db = client.db_credit
 col_members = db.members
 col_payments = db.payments
 
-
-# print("Time query 1 : ", measure_query_1(db, "Real Estate loan", 2021))
-# print("Time query 2 : ", measure_query_2(db, "Ewing-Olson", "Manchester"))
-# print("Time query 3 : ", measure_query_3(db, "Real Estate loan", "West"))
-# print("Time query 4 : ", measure_query_4(db, "Citigroup"))
-# print("Time query 5 : ", measure_query_5(db))
-# print("Time query 6 : ", measure_query_6(db))
-# print("Time query 7 : ", measure_query_7(db, col_members, col_payments))
+print("For 6 shards : ")
+print("Time query 1 : ", measure_query_1(db, "Real Estate loan", 2021))
+print("Time query 2 : ", measure_query_2(db, "Ewing-Olson", "Manchester"))
+print("Time query 3 : ", measure_query_3(db, "Real Estate loan", "West"))
+print("Time query 4 : ", measure_query_4(db, "Citigroup"))
+print("Time query 5 : ", measure_query_5(db))
+print("Time query 6 : ", measure_query_6(db))
+print("Time query 7 : ", measure_query_7(db, col_members, col_payments))
 print("Time query 8 : ", measure_query_8(db, col_members, col_payments))
 # measure_query_7(db, col_members, col_payments)
 # measure_query_8(col_members, col_payments)

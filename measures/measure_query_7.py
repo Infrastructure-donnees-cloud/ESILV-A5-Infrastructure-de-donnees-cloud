@@ -149,16 +149,16 @@ def measure_query_7(db, col_members, col_payments):
                 {"aggregate": "payments", "pipeline": query7_2, "cursor": {}},
                 verbosity="executionStats",
             )
-            # for shards in results_time_2["shards"]:
-            #     infos = results_time_2["shards"][shards]
-            #     execution_time += (
-            #         infos["stages"][0]["$cursor"]["executionStats"][
-            #             "executionTimeMillis"
-            #         ]
-            #         + infos["stages"][1]["executionTimeMillisEstimate"]
-            #         + infos["stages"][2]["executionTimeMillisEstimate"]
-            #         + infos["stages"][3]["executionTimeMillisEstimate"]
-            #     )
+            for shards in results_time_2["shards"]:
+                infos = results_time_2["shards"][shards]
+                execution_time += (
+                    infos["stages"][0]["$cursor"]["executionStats"][
+                        "executionTimeMillis"
+                    ]
+                    + infos["stages"][1]["executionTimeMillisEstimate"]
+                    + infos["stages"][2]["executionTimeMillisEstimate"]
+                    + infos["stages"][3]["executionTimeMillisEstimate"]
+                )
             execution_time += 1
             results7_2 = col_payments.aggregate(
                 [
@@ -237,7 +237,6 @@ def measure_query_7(db, col_members, col_payments):
         # for p in results7_3:
         #     print(p)
         col.drop()
-        print(i)
     times.remove(max(times))
     times.remove(min(times))
     return mean(times)
