@@ -1,4 +1,8 @@
-def measure_query_7(col_members, col_payments):
+def measure_query_7(db, col_members, col_payments):
+
+    col_temp_query7 = db["col_query7"]
+
+    col_temp_query7.drop()
     results7_1 = col_members.aggregate(
         [
             {"$unwind": "$charges"},
@@ -11,7 +15,8 @@ def measure_query_7(col_members, col_payments):
             },
         ]
     )
-
+    avg_rembourseent_time = {}
+    index = 0
     for row in results7_1:
         # print(row["charges"]["payments"])
         results7_2 = col_payments.aggregate(
@@ -38,29 +43,93 @@ def measure_query_7(col_members, col_payments):
                         "_id": row["charges"][
                             "charge_dt"
                         ],  # the date and hour of the loaning is considered as a unique id*/
-                        # "time_delta_in_days": {
-                        #     "$dateDiff": {
-                        #         "startDate": {
-                        #             "$dateFromString": {
-                        #                 "dateString": row["charges"]["charge_dt"],
-                        #                 "format": "%Y-%m-%d",  # /* Date of Loaning */
-                        #             }
-                        #         },
-                        #         "endDate": {
-                        #             "$dateFromString": {
-                        #                 "dateString": "$last_payment_date",
-                        #                 "format": "%Y-%m-%d",
-                        #             }
-                        #         },
-                        #         "unit": "day",
-                        #     }
-                        # },
+                        "time_delta_in_days": {
+                            "$divide": [
+                                {
+                                    "$subtract": [
+                                        {
+                                            "$dateFromString": {
+                                                "dateString": row["charges"][
+                                                    "charge_dt"
+                                                ],
+                                                "format": "%Y-%m-%d",  # /* Date of Loaning */
+                                            }
+                                        },
+                                        {
+                                            "$dateFromString": {
+                                                "dateString": "$last_payment_date",
+                                                "format": "%Y-%m-%d",
+                                            }
+                                        },
+                                    ]
+                                },
+                                1000 * 60 * 60,
+                            ]
+                        },
                         "total_payment_principal": 1,
                     }
                 },
             ]
         )
-        # print(results7_2)
+        # print(type(results7_2))
         for p in results7_2:
-            print(p)
-        print("Go next")
+
+            new_doc = db.col_query7.insert_one(p)
+            index += 1
+        if index == 21:
+            break
+    col = db.col_query7
+    results7_3 = col.aggregate(
+        [
+            {
+                "$project": {
+                    "total_payment_principal": 1,
+                    "time_delta_in_days": 1,
+                    "range": {
+                        "$cond": [
+                            {
+                                "$and": [
+                                    {"$gte": ["$total_payment_principal", 0]},
+                                    {"$lte": ["$total_payment_principal", 20000]},
+                                ]
+                            },
+                            "0-20000",
+                            {
+                                "$cond": [
+                                    {
+                                        "$and": [
+                                            {
+                                                "$gte": [
+                                                    "$total_payment_principal",
+                                                    20001,
+                                                ]
+                                            },
+                                            {
+                                                "$lte": [
+                                                    "$total_payment_principal",
+                                                    40000,
+                                                ]
+                                            },
+                                        ]
+                                    },
+                                    "20001-40000",
+                                    "40001-above",
+                                ]
+                            },
+                        ]
+                    },
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$range",
+                    "average_repayment_time": {"$avg": "$time_delta_in_days"},
+                }
+            },
+        ]
+    )
+
+    print(results7_3)
+    for p in results7_3:
+        print(p)
+    col.drop()

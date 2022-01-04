@@ -19,15 +19,16 @@ db = client.db_credit
 col_members = db.members
 col_payments = db.payments
 
-# measure_query_1(col, "Real Estate loan", 2021)
-# measure_query_2(col, "Ewing-Olson", "Manchester")
-# measure_query_3(col, "Real Estate loan", "West")
-# measure_query_4(col_members, "")
-measure_query_5(col_members)
-# measure_query_6(col)
 
-# print(col.find_one())
-# measure_query_7(col_members, col_payments)
+# print(db.collection.getShardDistribution())
 
 
+# print("Time query 1 : ", measure_query_1(db, "Real Estate loan", 2021))
+# print("Time query 2 : ", measure_query_2(db, "Ewing-Olson", "Manchester"))
+# print("Time query 3 : ", measure_query_3(db, "Real Estate loan", "West"))
+# print("Time query 5 : ", measure_query_5(db))
+# print("Time query 6 : ", measure_query_5(db))
+measure_query_7(db, col_members, col_payments)
+
+print("Listes de db :", client.list_database_names())
 client.close()

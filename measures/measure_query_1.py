@@ -1,50 +1,54 @@
-def measure_query_1(col, category_desc, year):
-    results1 = col.aggregate(
-        [
-            {"$unwind": "$charges"},
-            {"$match": {"charges.category_desc": "Real Estate loan"}},
-            {
-                "$project": {
-                    "year": {
-                        "$year": {
-                            "$dateFromString": {
-                                "dateString": "$charges.charge_dt",
-                                "format": "%Y-%m-%d",
-                            }
+from statistics import mean
+
+
+def measure_query_1(db, category_desc, year):
+    times = []
+    query1 = [
+        {"$unwind": "$charges"},
+        {"$match": {"charges.category_desc": category_desc}},
+        {
+            "$project": {
+                "year": {
+                    "$year": {
+                        "$dateFromString": {
+                            "dateString": "$charges.charge_dt",
+                            "format": "%Y-%m-%d",
                         }
-                    },
-                    "lastname": 1,
-                    "firstname": 1,
-                }
-            },
-            {"$match": {"year": 2021}},
-        ]
-    )
-    for p in results1:
-        print(p)
+                    }
+                },
+                "lastname": 1,
+                "firstname": 1,
+                "member_no": 1,
+            }
+        },
+        {"$match": {"year": year}},
+    ]
+    for i in range(0, 10):
 
+        results1_time = db.command(
+            "explain",
+            {"aggregate": "members", "pipeline": query1, "cursor": {}},
+            verbosity="executionStats",
+        )
 
-# test = db.command(
-#     "aggregate",
-#     "members",
-#     pipeline=[
-#         {"$unwind": "$charge"},
-#         {"$match": {"charge.category_desc": "Travel"}},
-#         {
-#             "$project": {
-#                 "year": {"$year": "$charge.charge_dt"},
-#                 "lastname": 1,
-#                 "firstname": 1,
-#             }
-#         },
-#         {"$match": {"year": "2020"}},
-#     ],
-#     explain=True,
-# )
-
-
-# results1 = col.find()
-# print(test2)
-# for p in results1:
-#     print(p)
-# print(results1)
+        execution_time = (
+            results1_time["shards"]["RS_credit"]["stages"][0]["$cursor"][
+                "executionStats"
+            ]["executionTimeMillis"]
+            + results1_time["shards"]["RS_credit"]["stages"][1][
+                "executionTimeMillisEstimate"
+            ]
+            + results1_time["shards"]["RS_credit"]["stages"][2][
+                "executionTimeMillisEstimate"
+            ]
+            + results1_time["shards"]["RS_credit"]["stages"][3][
+                "executionTimeMillisEstimate"
+            ]
+            + results1_time["shards"]["RS_credit"]["stages"][4][
+                "executionTimeMillisEstimate"
+            ]
+        )
+        times.append(execution_time)
+    times.remove(max(times))
+    times.remove(min(times))
+    return mean(times)
