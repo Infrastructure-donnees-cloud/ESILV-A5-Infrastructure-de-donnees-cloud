@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Don't forget the "|safe"! -->
+<div id="chart">
+   <embed type="image/svg+xml" src= {{ barchart_data|safe }} style="width:50%;height:50%" />      
+</div>    
+{% endblock %}

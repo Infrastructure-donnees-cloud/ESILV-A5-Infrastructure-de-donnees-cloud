@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }}!</h1>
+
+
+    {% for query in queries %}
+    <div><p>Query number : {{ query.number}} says: <b>{{ query.body }}</b></p></div>
+    {% endfor %}
+{% endblock %}
