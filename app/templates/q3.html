@@ -3,10 +3,19 @@
 {% block content %}
     <h1>Hi, {{ current_user.username }} !</h1>
 
-    <h3>This is the result to the query 3 : </h3>
+    <h3>Please fill the below form</h3>
+
+    <form action="" method="post">
+        <label for="category"><b>Loan category : </b>(School credit loan | Real Estate loan | Consumer loan) </label>
+        <input type="text" id="category" name="category"><br>
+        <label for="street"><b>Street word : </b>(Avenue, Lake etc..)</label>
+        <input type="text" id="street" name="street"><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h3>This is the result to the query : </h3>
 
     {% for r in res%}
-    <div><p><b>Lastname : {{ r.lastname}}</b> | firstname : {{r.firstname}} | provider : {{r.charges.provider_name}} </p>
-    </div>
+    <div><p>Lastname : <b>{{ r.lastname}}</b> and firstname : <b>{{ r.firstname }}</b></p></div>
     {% endfor %}
 {% endblock %}

@@ -5,12 +5,6 @@
 
     <h3>This is the result to the query : </h3>
 
-    {% for r in res%}
-    <div>
-        <p>Credit range : <b>{{r._id}}</b> ($) and it's average time to repay it is <b>{{r.average_repayment_time}}</b> days.</p>
-    </div>
-    {% endfor %}
-
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
@@ -21,6 +15,14 @@
             Plotly.plot('bargraph',graphs,{});
         </script>
     </div>
+
+
+    {% for r in res%}
+    <div>
+        <p>Category loan : <b>{{r.category}}</b> with a monthly rate of <b>{{r.monthly_rate}}</b> by provider id <b>{{r.provider_no}}</b></p>
+    </div>
+    {% endfor %}
+
 
 
 {% endblock %}

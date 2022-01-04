@@ -5,21 +5,26 @@
 
     <h3>You are an admin, please consult the below information !</h3>
 
-    <h3>Collections : </h3>
+    <h4>Collections : </h4>
+
+    <p>The total of number of collection is <b>{{num_collections}}</b> and are named : </p>
 
     {% for col in collections %}
-
         <div>
             <p><b>{{ col}}</b></p>
         </div>
-
     {% endfor %}
 
 
-    <h3>Number of objects : </h3>
+    <h4>Objects : </h4>
 
-    <p>{{number_objects}}</p>
+    <p>The total of number of objects is <b>{{number_objects}}</b> and it's average size is <b>{{avg_object_size}}</b> bits.</p>
+    <p>The total data size is <b>{{data_size}}</b> bits and the total storage size is <b>{{storage_size}}</b> bits.</p>
 
+
+    <h4>Indexes : </h4>
+
+    <p>The total number of indexes is <b>{{indexes}}</b></p>
 
 {% endblock %}
 

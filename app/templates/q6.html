@@ -3,17 +3,18 @@
 {% block content %}
     <h1>Hi, {{ current_user.username }} !</h1>
 
-    <h2>This is the result to the query 6 : </h2>
+    <h3>This is the result to the query : </h3>
+
 
     {% for r in res%}
-    <div><p><b>Category : {{ r._id}}</b> | Amount : {{ r.maxi.amount }} | Provider : {{ r.maxi.provider_name }} </p>
-    </div>
+        <div>
+            <p>Category : <b>{{ r._id}}</b> with an amount of : <b>{{ r.maxi.amount }}</b>$ provided by <b>{{ r.maxi.provider_name }}</b></p>
+        </div>
     {% endfor %}
 
 
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-
 
     <div class="chart" id="bargraph">
         <script>

@@ -166,18 +166,13 @@ h1 {
   text-align: center;
 }
 
-h2,
+h2 {
+  text-align: left;
+}
 h3 {
   text-align: center;
 }
-h4,
-h5,
-h6,
-.h1,
-.h2,
-.h3,
-.h4,
-.h5,
+
 .h6 {
   font-family: "Open sans", Helvetica, Arial, sans-serif;
   font-weight: 400;
@@ -198,6 +193,7 @@ h3 {
 h4 {
   font-size: 24px;
   font-size: 1.5rem;
+  text-align: left;
 }
 h5 {
   font-size: 20px;

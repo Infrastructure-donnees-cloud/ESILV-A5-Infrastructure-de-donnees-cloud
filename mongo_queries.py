@@ -1,7 +1,8 @@
 from pymongo import MongoClient
 import pandas as pd
 from bson.json_util import dumps, loads
-import pymongo
+from statistics import mean
+import uuid
 
 
 
@@ -60,7 +61,7 @@ def query_2(corp_name):
                     ]
                 }
             },
-            {"$project": {"lastname": 1, "charges.payments": 1}},
+            {"$project": {"lastname": 1, "firstname":1, "charges.payments": 1}},
         ]
     )
     
@@ -68,7 +69,7 @@ def query_2(corp_name):
 
 
 
-def query_3():
+def query_3(category, street):
 
     col = db_connection()['members']
     
@@ -78,8 +79,8 @@ def query_3():
             {
                 "$match": {
                     "$and": [
-                        {"charges.category_desc": "Real Estate loan"},
-                        {"location.street": {"$regex": "Circle"}},
+                        {"charges.category_desc": str(category)},
+                        {"location.street": {"$regex": str(street)}},
                     ]
                 }
             },
@@ -89,64 +90,69 @@ def query_3():
     return list(results3)[0:25]
 
 
-def query_4():
+def query_4(capital, provider):
 
     col = db_connection()['members']
-    
+
     results4 = col.aggregate(
         [
-            {
-                "$match": {
-                    "balance.curr_balance": {"$gt": 0},
-                    "charges.provider_name": {"$eq": "Citigroup"},
+        {
+            "$match": {
+                "balance.curr_balance": {"$gt": int(capital)},
+                "charges.provider_name": {"$eq": str(provider)},
+            }
+        },
+        {"$unwind": "$charges"},
+        {
+            "$addFields": {
+                "member_phone_last_2digits": {
+                    "$substr": [
+                        "$phone_number",
+                        {"$subtract": [{"$strLenCP": "$phone_number"}, 2]},
+                        -1,
+                    ]
+                },
+                "provider_phone_last_2digits": {
+                    "$substr": [
+                        "$charges.provider_phone_number",
+                        {
+                            "$subtract": [
+                                {
+                                    "$strLenCP": {
+                                        "$toString": "$charges.provider_phone_number"
+                                    }
+                                },
+                                2,
+                            ]
+                        },
+                        -1,
+                    ]
+                },
+            }
+        },
+        {
+            "$match": {
+                "$expr": {
+                    "$eq": [
+                        "$member_phone_last_2digits",
+                        "$provider_phone_last_2digits",
+                    ]
                 }
-            },
-            {"$unwind": "$charges"},
-            {
-                "$addFields": {
-                    "member_phone_last_2digits": {
-                        "$substr": [
-                            "$phone_number",
-                            {"$subtract": [{"$strLenCP": "$phone_number"}, 2]},
-                            -1,
-                        ]
-                    },
-                    "provider_phone_last_2digits": {
-                        "$substr": [
-                            "$charges.provider_phone_number",
-                            {
-                                "$subtract": [
-                                    {"$strLenCP": "$charges.provider_phone_number"},
-                                    2,
-                                ]
-                            },
-                            -1,
-                        ]
-                    },
-                }
-            },
-            {
-                "$match": {
-                    "$expr": {
-                        "$eq": [
-                            "$member_phone_last_2digits",
-                            "$provider_phone_last_2digits",
-                        ]
-                    }
-                }
-            },
-            {
-                "$project": {
-                    "lastname": True,
-                    "firstname": True,
-                    "phone_number": True,
-                    "provider_phone_number": "$charges.provider_phone_number",
-                }
-            },
-        ]
-    )
-    
+            }
+        },
+        {
+            "$project": {
+                "lastname": 1,
+                "firstname": 1,
+                "phone_number": 1,
+                "provider_phone_number": "$charges.provider_phone_number",
+            }
+        },
+    ])
+
     return list(results4)[0:25]
+    
+#print(query_4('Bank of America'))
 
 
 def query_5():
@@ -177,7 +183,7 @@ def query_5():
                 "$project": {
                     "member_no": 1,
                     "current_balance": "$balance.curr_balance",
-                    "total_debt_to_pay": "$totalh1_debt_to_pay",
+                    "total_debt_to_pay": "$total_debt_to_pay",
                     "corp_no": "$corporation.corp_no",
                     "region": "$corporation.region_no",
                 }
@@ -231,7 +237,6 @@ def query_7():
     
     col_temp_query7 = db["col_query7"]
 
-    col_temp_query7.drop()
     results7_1 = col_members.aggregate(
         [
             {"$unwind": "$charges"},
@@ -244,10 +249,12 @@ def query_7():
             },
         ]
     )
+    
     avg_rembourseent_time = {}
+    
     index = 0
     for row in results7_1:
-        # print(row["charges"]["payments"])
+    
         results7_2 = col_payments.aggregate(
             [
                 {"$match": {"payment_no": {"$in": row["charges"]["payments"]}}},
@@ -365,14 +372,96 @@ def query_7():
     return list(results7_3)
 
 
-#print(query_7())
 
 
-#print(query_6())
+def query_8(category_desc = None):
 
-#df = pd.json_normalize(query_4())
-#print(df)
+    db = db_connection()
+    col_members = db['members']
+    col_payments = db['payments']
 
+    
+    query8_1 = [
+        {"$unwind": "$charges"},
+        {
+            "$project": {
+                "charges.payments": 1,
+                "charges.charge_amount": 1,
+                "charges.charge_dt.date": 1,
+                "charges.category_desc": 1,
+                "charges.provider_no": 1,
+            }
+        },
+    ]
+
+    query8_3 = [
+        {
+            "$group": {
+                "_id": {
+                    "$concat": [
+                        "provider_",
+                        {"$toString": "$provider_no"},
+                        "-",
+                        "$category",
+                    ]
+                },
+                "provider_no": {"$last": "$provider_no"},
+                "category": {"$last": "$category"},
+                "monthly_rate": {"$avg": "$monthly_average_interest_rate"},
+            }
+        },
+        {"$sort": {"provider_no": 1}},
+    ]
+
+    results8_1 = col_members.aggregate(query8_1)
+
+    col_temp_query8 = db["col_query8"]
+    col_temp_query8.drop()
+
+    index = 0
+    for row in results8_1:
+        index += 1
+        # print(row)
+        results8_2 = col_payments.aggregate(
+            [
+
+                {"$match": {"payment_no": {"$in": row["charges"]["payments"]}}},
+                {"$sort": {"payment_dt": 1}},
+                {
+                    "$group": {
+                        "_id": str(uuid.uuid1()),
+                        "monthly_average_interest_rate": {
+                            "$avg": {
+                                "$divide": ["$payment_interest", "$payment_principal"]
+                            }
+                        },
+                        "last_payment_date": {"$last": "$payment_dt"},
+                    }
+                },
+                {
+                    "$addFields": {
+                        "category": row["charges"]["category_desc"],
+                        "provider_no": row["charges"]["provider_no"],
+                    }
+                },
+            ]
+        )
+
+        for p in results8_2:
+            new_doc = db.col_query8.insert_one(p)
+        if index > 50:
+            break
+
+    results8_3 = db.col_query8.aggregate(query8_3)
+    
+
+    col_temp_query8 = db["col_query8"]
+    col_temp_query8.drop()
+    
+    return list(results8_3)
+
+
+#print(query_8())
 
 def get_list_collections():
 
@@ -403,13 +492,25 @@ def db_stats():
     except:
         print('Error')
 
-#db_stats()
+#print(db_stats())
+
+def get_number_collection():
+
+    stats = db_stats()
+    res = stats['collections']
+    return res
 
 
 def get_number_objects():
 
     stats = db_stats()
     res = stats['objects']
+    return res
+
+def get_avg_object_size():
+
+    stats = db_stats()
+    res = stats['avgObjSize']
     return res
 
 #get_number_objects()
@@ -432,8 +533,3 @@ def get_storage_size():
     stats = db_stats()
     res = stats['storageSize']
     return res    
-
-
-#a = db_connection()['providers']
-
-#print(a.index_information())

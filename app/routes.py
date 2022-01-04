@@ -38,12 +38,12 @@ def index():
     queries = [
         {
             "number" : 1,
-            "body": "All members who took a loan in 2021, according to category Trip.",
+            "body": "All members who took a loan in XX, according to category Y.",
             "access_type":0
         },
         {
             "number" : 2,
-            "body": "List of payments made by employees of company XX and whose credit provider resides in city YY.",
+            "body": "List of payments made by employees of company XX and whose credit provider resides in Savannah.",
             "access_type":0
         },
         {
@@ -58,7 +58,7 @@ def index():
         },
         {
             "number" : 5,
-            "body": "Corporation whose employees are indebted of more than 10000$ by region and whose employees must repay their loans as quickly as possible.",
+            "body": "Corporation whose employees are indebted and must repay their loans as quickly as possible.",
             "access_type":1
         },
         {
@@ -68,7 +68,7 @@ def index():
         },
         {
             "number" : 7,
-            "body": "Average time required for a member to repay a loan (already paid) by range of credit contracted.",
+            "body": "Average time required for a member to repay a loan (already paid) by range of credit contracted. TAKE TIMES TO COMPUTE",
             "access_type":1
         },
         {
@@ -120,24 +120,11 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/access')   
-def access():
-
-    print(current_user.username)
-    print(current_user.email)
-    print(current_user.access_type)
-
-    if current_user.access_type>1:
-        return "Access ok"
-    else:
-        return "Access denied"
-
-
 @app.route('/q1', methods =["GET", "POST"])
 def q1():
 
     if request.method == "POST":
-       # getting input with name = fname in HTML form
+        
        category = request.form.get("category")
        year = request.form.get("year")
 
@@ -152,8 +139,9 @@ def q1():
 def q2():
 
     if request.method == "POST":
-       # getting input with name = fname in HTML form
-       corp_name = request.form.get("corp_name")
+       
+       corp_name = request.form.get("corp")
+       #city = request.form.get("city")
 
        res = mongo_queries.query_2(corp_name)
        
@@ -162,12 +150,46 @@ def q2():
     return render_template("q2.html")
 
 
-@app.route('/q3')   
+@app.route('/q3', methods =["GET", "POST"])
 def q3():
 
-    res = mongo_queries.query_3()
-    return render_template('q3.html', title='Query 3', res=res)
+    if request.method == "POST":
+       
+       category = request.form.get("category")
+       street = request.form.get("street")
 
+       res = mongo_queries.query_3(category, street)
+       
+       return render_template('q3.html', title='Query 3', res=res)
+    
+    return render_template("q3.html")
+
+
+@app.route('/q4', methods =["GET", "POST"])
+def q4():
+
+    if request.method == "POST":
+       
+       capital = request.form.get("capital")
+       provider = request.form.get("provider")
+
+       res = mongo_queries.query_4(capital, provider)
+       
+       return render_template('q4.html', title='Query 4', res=res)
+    
+    return render_template("q4.html")
+
+
+@app.route('/q5')
+def q5():
+
+    if current_user.access_type>=1:
+   
+        res = mongo_queries.query_5()    
+        return render_template('q5.html', title='Query 5', res=res)
+
+    else:
+        return render_template('denied.html')
 
 @app.route('/q6')   
 def q6():
@@ -202,20 +224,76 @@ def q6():
 @app.route('/q7')   
 def q7():
 
-    res = mongo_queries.query_7()
-    return render_template('q7.html', title='Query 7', res=res)
+    if current_user.access_type>=1:
 
+        res = mongo_queries.query_7()
+
+        for elem in res:
+            elem['average_repayment_time'] = abs(elem['average_repayment_time'])
+
+        #Collect all the informations to plot
+
+        data = pd.json_normalize(res)
+        fig = px.bar(data, x='_id', y='average_repayment_time', barmode='group', title = 'Average time required for a member to repay a loan (already paid) by range of credit contracted.',
+        
+        labels={
+                        "_id": "Credit range in $",
+                        "average_repayment_time": "Average time in days"
+                    }
+        
+        )
+
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return render_template('q7.html', title='Query 7', res=res, graphJSON = graphJSON)
+
+    else:
+        return render_template('denied.html')
+
+
+@app.route('/q8')   
+def q8():
+
+    if current_user.access_type>=1:
+
+        res = mongo_queries.query_8()
+        #Collect all the informations to plot
+
+        data = pd.json_normalize(res)
+        fig = px.bar(data, x='category', y='monthly_rate', color='provider_no', title = 'Average interest rate of each provider, by category.',
+        
+        labels={
+                        "category": "Credit loan category",
+                        "monthly_rate": "Monthly rate (%)"
+                    }
+        
+        )
+
+        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+        return render_template('q8.html', title='Query 8', res=res, graphJSON = graphJSON)
+
+    else:
+        return render_template('denied.html')
 
 
 @app.route('/admin')   
 def admin():
 
-    if current_user.access_type>=1:
+    if current_user.access_type>=2:
 
         collections = mongo_queries.get_list_collections()
         number_objects = mongo_queries.get_number_objects()
+        avg_object_size = mongo_queries.get_avg_object_size()
+        data_size = mongo_queries.get_data_size()
+        indexes = mongo_queries.get_indexes()
+        storage_size = mongo_queries.get_storage_size()
+        num_collections = mongo_queries.get_number_collection()
 
-        return render_template('admin.html', collections=collections, number_objects=number_objects)
+
+        return render_template('admin.html', collections=collections, number_objects=number_objects,
+        avg_object_size=avg_object_size, data_size = data_size, indexes = indexes,
+        storage_size = storage_size, num_collections=num_collections)
 
     else:
         return render_template('denied.html')

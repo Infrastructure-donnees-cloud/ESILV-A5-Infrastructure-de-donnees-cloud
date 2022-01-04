@@ -3,13 +3,13 @@
 {% block content %}
     <h1>Hi, {{ current_user.username }} !</h1>
 
-    <h2>Please fill the below form</h2>
+    <h3>Please fill the below form</h3>
 
     <form action="" method="post">
-        <label for="category">Loan category (School credit loan | Real Estate loan | Consumer loan) :</label>
-        <input type="text" id="category" name="category">
-        <label for="year">Year :</label>
-        <input type="number" id="year" name="year">
+        <label for="category"><b>Loan category : </b>(School credit loan | Real Estate loan | Consumer loan) </label>
+        <input type="text" id="category" name="category"><br>
+        <label for="year"><b>Year : </b>(2020)</label>
+        <input type="number" id="year" name="year"><br>
         <button type="submit">Submit</button>
     </form>
 
@@ -17,7 +17,7 @@
 
     <body>
     {% for r in res%}
-    <div><p><b>Lastname : {{ r.lastname}}</b> and firstname : {{ r.firstname }}</p></div>
+    <div><p>Lastname : <b>{{ r.lastname}}</b> and firstname : <b>{{ r.firstname }}</b></p></div>
     {% endfor %}
     </body>
 {% endblock %}
