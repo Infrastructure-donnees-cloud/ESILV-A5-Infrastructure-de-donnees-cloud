@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }} !</h1>
+
+    <h3>This is the result to the query : </h3>
+
+    <body>
+    {% for r in res%}
+    <div><p>Member Id : <b>{{ r.member_no}}</b> with a current balance of <b>{{ r.current_balance}} ($)</b> who is indebted of <b>{{r.total_debt_to_pay}} ($)</b> </p></div>
+    {% endfor %}
+    </body>
+{% endblock %}

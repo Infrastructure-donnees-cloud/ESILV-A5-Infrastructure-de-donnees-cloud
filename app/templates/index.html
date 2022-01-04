@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }}!</h1>
+
+    <h3>This is all the available queries, but you can only click on the one you are given the rights to !</h3>
+
+    {% for query in queries %}
+
+        <div>
+            <p><b><a href="/q{{query.number}}">Query {{ query.number}}</a></b> : {{ query.body }}</p>
+        </div>
+
+    {% endfor %}
+
+    <p>
+        <div>
+            <h4>If you are an admin, you can check <b><a href="/admin">more info !</a></b></h4>
+        </div>
+    </p>
+
+
+{% endblock %}
+

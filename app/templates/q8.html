@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Hi, {{ current_user.username }} !</h1>
+
+    <h3>This is the result to the query : </h3>
+
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <div class="chart" id="bargraph">
+        <script>
+            var graphs = {{graphJSON | safe}};
+            Plotly.plot('bargraph',graphs,{});
+        </script>
+    </div>
+
+
+    {% for r in res%}
+    <div>
+        <p>Category loan : <b>{{r.category}}</b> with a monthly rate of <b>{{r.monthly_rate}}</b> by provider id <b>{{r.provider_no}}</b></p>
+    </div>
+    {% endfor %}
+
+
+
+{% endblock %}
